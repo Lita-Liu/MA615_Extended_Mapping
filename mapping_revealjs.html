@@ -1,0 +1,113 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>reveal.js</title>
+
+		<link rel="stylesheet" href="dist/reset.css">
+		<link rel="stylesheet" href="dist/reveal.css">
+		<link rel="stylesheet" href="dist/theme/black.css" id="theme">
+
+		<!-- Theme used for syntax highlighted code -->
+		<link rel="stylesheet" href="plugin/highlight/monokai.css" id="highlight-theme">
+	</head>
+	<body>
+		<div class="reveal">
+			<div class="slides">
+				<section data-transition = "convex">
+					<img src="hurricane.jpg"  height="300" width="600">
+					<p>Hurricane Presentation</p>
+				</section>
+				<section>
+					 <section data-transition = "convex" data-auto-animate>
+						 <p data-id="code-title">Code of tmap for hurricane tracks and rainfall</p>
+						 <pre data-id="code-animation"><code class="hljs" data-trim data-line-numbers>
+	tm_shape(sftf5)+
+  tm_polygons(border.col="black",lwd=1, col ="Rainfall(mm)", style="cat", title="Rainfall(mm)", palette=viridis(n=10,direction=-1))+
+  tm_shape(tfloyd_h)+
+  tm_lines(col = "red")+
+  tm_layout(main.title='Floyd-1999',main.title.position="center",main.title.size = 2)
+							 </code></pre>
+							 <p>For huricane track and rainfall of floyd-1999</p>
+					 </section>
+					 <section data-transition = "convex">
+	 					<img src="tmapf.jpg"  height="500" width="700">
+	 					<p>Graph of floyd-1999 ploted by tmap</p>
+	 				 </section>
+	      </section>
+				<section>
+					 <section data-transition = "convex" data-auto-animate>
+						 <p data-id="code-title">Code of ggplot for hurricane tracks and rainfall</p>
+						 <pre data-id="code-animation"><code class="hljs" data-trim data-line-numbers>
+							 ggplot()+
+							   geom_polygon(a5, mapping=aes(x = long, y = lat, group = group, fill = phase))+
+							   geom_path(map_states, mapping=aes(x = long, y = lat, group = group),color="black")+
+							   geom_path(allison_h, mapping = aes(x=longitude, y=latitude),color="red")+
+							   xlab("Longtitude")+ylab("Latitude")+
+							   ggtitle("Allison−2001")+
+							   labs(fill="Rain >175 mm")+
+							   theme(plot.title = element_text(hjust = 0.5, size = 20))
+							 </code></pre>
+							 <p>For huricane track and rainfall of Allison-2001</p>
+					 </section>
+					 <section data-transition = "convex">
+	 					<img src="ggplot2.jpg"  height="500" width="700">
+	 					<p>Graph of Allison-2001 ploted by ggplot</p>
+	 				 </section>
+	      </section>
+				<section data-transition = "convex" data-auto-animate>
+					<h2> data import</h2>
+					<p>In this project, we are going to create interactive map of public assistance program summary data from FEMA.We load data from FEMA[1]:https://www.fema.gov/openfema-data-page/public-assistance-funded-projects-details-v1. </p>
+				</section>
+				<section>
+					<section data-transition = "convex">
+						<h2> total Obligated amount for each region</h2>
+						<p> We also did EDA for the dataset "PublicAssistanceFundedProjectsDetails" by filtering the information about hurricane. And then plot the graphs about total obligated amount for each region every year.
+						</p>
+					</section>
+					<section data-transition = "convex">
+						<h2> Process</h2>
+						<p>Firstly, we extract information for hurricane and delete "NA" and negative values. Then we merge the states and counties from the dataset with fips to plot graph on the us map. Finally, we use ggplot just like the graph in last slide. In next slide, we will present the graph about obligated sum for one year.
+						</p>
+					</section>
+					<section data-transition = "convex">
+					 <img src="ob1.png"  height="500" width="700">
+					 <p>Graph of 2018 obligated_sum ploted by ggplot </p>
+					</section>
+				</section>
+				<section>
+					<section data-transition = "convex">
+						<h2> Disaster numbers</h2>
+						<p> Besides, we clear up the data for total number of disasters for each region and plot them on the graph as well.
+						</p>
+					</section>
+					<section data-transition = "convex">
+					 <img src="dn1.png"  height="500" width="700">
+					 <p>Graph of total number of disasters ploted by ggplot </p>
+					</section>
+				</section>
+				<section data-transition = "convex">
+					<h2>Thank you!</h2>
+				</section>
+			</div>
+		</div>
+
+		<script src="dist/reveal.js"></script>
+		<script src="plugin/notes/notes.js"></script>
+		<script src="plugin/markdown/markdown.js"></script>
+		<script src="plugin/highlight/highlight.js"></script>
+		<script>
+			// More info about initialization & config:
+			// - https://revealjs.com/initialization/
+			// - https://revealjs.com/config/
+			Reveal.initialize({
+				hash: true,
+
+				// Learn about plugins: https://revealjs.com/plugins/
+				plugins: [ RevealMarkdown, RevealHighlight, RevealNotes ]
+			});
+		</script>
+	</body>
+</html>
