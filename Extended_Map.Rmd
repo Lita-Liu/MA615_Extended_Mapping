@@ -1,0 +1,124 @@
+---
+title: "Extended Mapping"
+author: "Kunyu Liu, Zhou Lin"
+date: "2020/11/10"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(drat)
+library(ggplot2)
+library(maps)
+```
+
+# Introduction
+In this project, we are going to create interactive map of public assistance program summary data from FEMA.
+
+# Data Cleaning
+
+## Data Import
+
+We load data from FEMA[1]:https://www.fema.gov/openfema-data-page/public-assistance-funded-projects-details-v1 and filter incident type as Hurricane from year 2009 - year 2018. 
+
+```{r}
+data1 <- read.csv("PublicAssistanceFundedProjectsDetails.csv", header = TRUE)
+dt2 <- filter(data1, incidentType =="Hurricane")
+data2 <- filter(dt2, declarationDate >= as.Date("2009-01-01") & declarationDate <= as.Date("2018-12-31"))
+```
+
+Use $map_data$ from $maps$ package to load the data of US geo-location.
+```{r}
+MainStates <- map_data("state")
+AllCounty <- map_data("county")
+```
+## Further data cleaning
+
+We use $filter$ function for extracting data on total obligated, and because of mis-registration, there are some negative value on totalObligated, so delete these negative values and then create a new dataset that contains a new variable $obligated_sum$ to represent the sum of totaObligated.
+
+```{r}
+temp1 <- separate(data2, obligatedDate, c("year","month"), sep = "-")
+data3 <- filter(temp1, year == year)
+data4 <- select(data3, state,county,year,totalObligated)
+index <- which(data4$totalObligated > 0)
+data5 <- data4[index,]
+d1 <- group_by(data5,state,county)
+d2 <- summarise(d1,obligated_sum = sum(totalObligated), .groups = "drop")
+```
+
+Do same steps as follows, to generate a new dataset with $disaster_sum$ as a new variable to represent sum of disasterNumber
+```{r}
+data6 <- select(data3, state,county,year,disasterNumber)
+d4 <- group_by(data6,state,county)
+d5 <- summarise(d4,disaster_sum = sum(disasterNumber), .groups = "drop")
+```
+
+we obtain fips of each county from $map$ package, we merge its fips information within county data to obtain longitude and latitude of each county.
+
+```{r}
+data("county.fips")
+names(d2) <- c("region","subregion","obligated_sum")
+states <- c("texas","oklahoma","kansas","louisiana","arkansas","missouri","iowa",
+            "wisconsin","michigan","illinois","indiana","ohio","kentucky","tennessee",
+            "alabama","mississippi","florida","georgia","south carolina","north carolina",
+            "virginia","west virginia","maryland","delaware","pennsylvania","new jersey",
+            "new york","connecticut","rhode island","massachusetts","vermont",
+            "new hampshire","maine")
+map_states <- map_data("county", states)
+d2$region <- tolower(d2$region)
+d2$subregion <- tolower(d2$subregion)
+d3 <- merge(d2,map_states, by = c("region","subregion"))
+d3$phase <- cut(d3$obligated_sum,breaks=c(0,1000,5000,10000,50000,100000,1000000),include.lowest = T)
+
+```
+
+```{r}
+names(d5) <- c("region","subregion","disaster_sum")
+d5$region<-tolower(d5$region)
+d5$subregion <- tolower(d5$subregion)
+d6 <- merge(d5,map_states, by = c("region","subregion"))
+d6$phase1 <- cut(d6$disaster_sum,breaks=c(0,1000,5000,10000,50000,100000,1000000),include.lowest = T)
+
+```
+
+
+# Mapping
+## Total Obligated of Hurricane for each region
+```{r}
+p1 <- ggplot()+
+  geom_polygon(d3, mapping=aes(x = long, y = lat, group = group, fill = phase))+
+  geom_path(map_states, mapping=aes(x = long, y = lat, group = group),color="black")+
+  scale_fill_brewer(palette="Blues")+
+  xlab("Longtitude")+ ylab("Latitude")+
+  ggtitle("Hurricane obligated_sum for each region")+
+  labs(fill="Obligated_sum")+
+  theme(plot.title = element_text(hjust = 0.5, size = 20))
+p1
+```
+
+
+## Total disaster of Hurricane for each region
+```{r}
+p2 <- ggplot()+
+  geom_polygon(d6, mapping=aes(x = long, y = lat, group = group, fill = phase1))+
+  geom_path(map_states, mapping=aes(x = long, y = lat, group = group),color="grey")+
+  scale_fill_brewer(palette="Greens")+
+  xlab("Longtitude")+ ylab("Latitude")+
+  ggtitle("Hurricane disaster_sum for each region")+
+  labs(fill="Disaster_sum")+
+  theme(plot.title = element_text(hjust = 0.5, size = 20))
+p2
+```
+
+# References
+
+1:Public Assistance Funded Projects Details Date Set(https://www.fema.gov/openfema-data-page/public-assistance-funded-projects-details-v1)
+2:H. Wickham. ggplot2: Elegant Graphics for Data Analysis. Springer-Verlag New York, 2016.
+3:Original S code by Richard A. Becker, Allan R. Wilks. R version by Ray Brownrigg. Enhancements by Thomas P Minka and Alex Deckmyn. (2018). maps: Draw Geographical Maps. R package version 3.3.0. (https://CRAN.R-project.org/package=maps)
+4:Wickham H, Averick M, Bryan J, Chang W, McGowan LD, François R, Grolemund G, Hayes A, Henry L, Hester J, Kuhn M, Pedersen TL, Miller E, Bache SM, Müller K, Ooms J, Robinson D, Seidel DP, Spinu V, Takahashi K, Vaughan D, Wilke C, Woo K, Yutani H (2019). “Welcome to the tidyverse.” Journal of Open Source Software, 4(43), 1686. （https://cran.r-project.org/web/packages/tidyverse/index.html.）
